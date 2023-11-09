@@ -21,6 +21,7 @@ let todos = [
         dueDate: "2023-11-12"
     }
 ]
+
 // Function to display the todos
 function displayTodos() {
     fetch('/api/todos') // Make a GET request to the server to fetch todos
@@ -355,7 +356,6 @@ function editCategory() {
         alert("Please enter a valid category name.");
     }
 }
-
 
 displayTodos();
 

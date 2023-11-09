@@ -4,7 +4,29 @@ const app = express()
 const port = 5500
 
 
-const todos = []
+const todos = [
+    {
+      id: 0,
+      title: "Do Homework",
+      status: "incomplete",
+      category: "DGM3760",
+      dueDate: "2023-11-10"
+  },
+  {
+      id: 1,
+      title: "Walk the dog",
+      status: "incomplete",
+      category: "Home",
+      dueDate: "2023-11-08"
+  },
+  {
+      id: 2,
+      title: "Push code",
+      status: "complete",
+      category: "Work",
+      dueDate: "2023-11-12"
+  }
+]
 
 const bodyParser = require('body-parser')
 
@@ -37,7 +59,7 @@ app.post('/api/todos', (req, res) => {
 
 //PUT TODO
 // PUT TODO
-app.put('/api/todos/:id', (req, res) => {
+app.put('/api/todos/id', (req, res) => {
   const id = parseInt(req.params.id);
 
   const updatedTodo = todos.find((todo) => todo.id === id);
@@ -54,7 +76,7 @@ app.put('/api/todos/:id', (req, res) => {
 });
 
 //DELETE TODO
-app.delete('/api/todos/:id', (req, res) => {
+app.delete('/api/todos/id', (req, res) => {
     const id = parseInt(req.params.id)
     const deletedTodoIndex = todos.findIndex((todo) => todo.id === id)
 
