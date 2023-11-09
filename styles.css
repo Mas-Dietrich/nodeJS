@@ -1,0 +1,139 @@
+body {
+    background-color: #121212;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+h1 {
+    color: #fff;
+}
+
+input[type="text"] {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+button {
+    background-color: #03a9f4;
+    color: #fff;
+    border: none;
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0288d1;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #333;
+    border-radius: 5px;
+    margin: 5px 0;
+    padding: 10px;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #c62828;
+}
+.todo-item {
+    background-color: #333;
+    border-radius: 5px;
+    margin: 10px 0;
+    padding: 10px;
+    display: flex;
+    justify-content: space-evenly; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    transition: background-color 0.5s ease-in-out;
+}
+
+/* Style the category and due date */
+.todo-category,
+.todo-due-date {
+    font-size: 14px;
+    color: #ccc;
+    margin-top: 5px;
+    text-align: center; /* Center text within the category and due date spans */
+}
+
+/* Add styles for completed tasks */
+.completed-task {
+    background-color: #4CAF50; /* Green color for completed tasks */
+    color: #fff;
+    text-decoration: line-through; /* Strikethrough effect for completed tasks */
+    transition: background-color 0.5s ease-in-out;
+}
+
+/* Style the label */
+label[for="categoryFilter"] {
+    font-weight: bold;
+    color: #fff; /* Text color */
+    margin-left: 25px;
+}
+
+/* Style the category filter dropdown */
+#categoryFilter {
+    padding: 5px;
+    font-size: 16px;
+    background-color: #212121; /* Dark background color */
+    color: #fff; /* Text color */
+    border: 1px solid #757575; /* Border color */
+    border-radius: 4px;
+    margin-right: 15px;
+}
+
+/* Style the add category input */
+#newCategory {
+    margin-right: 10px;
+    padding: 5px;
+    font-size: 16px;
+    background-color: #212121; /* Dark background color */
+    color: #fff; /* Text color */
+    border: 1px solid #757575; /* Border color */
+    border-radius: 4px;
+}
+
+/* Style the "Add Category" button */
+button[onclick="addCategory"] {
+    background-color: #007acc; /* Accent color for buttons */
+    color: #fff; /* Text color */
+    padding: 5px 10px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Style the category filter dropdown options */
+#categoryFilter option {
+    font-size: 16px;
+    background-color: #212121; /* Dark background color for options */
+    color: #fff; /* Text color for options */
+}
+
+.editingTools{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.editingTools div {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Updated Todo App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>Todo App</h1>
+
+    <!-- Input field for adding new todos -->
+    <input type="text" id="newTodo" placeholder="Add a new todo">
+    <input type="text" id="newCategory" placeholder="Category">
+    <button onclick="addTodo()">Add</button>
+
+    <!-- Display the number of todos left to complete -->
+    <p id="todosLeft">0 todos left to complete</p>
+
+    <!-- Display the todos -->
+    <ul id="todoList"></ul>
+
+    <div class="editingTools">
+        <!-- Button to clear all completed todos -->
+        <div>
+            <button onclick="clearCompletedTodos()">Clear Completed</button>
+        </div>
+
+        <!-- Dropdown for category filtering -->
+        <div>
+            <label for="categoryFilter">Filter by Category:</label>
+            <select id="categoryFilter" onchange="filterByCategory()"></select>
+        </div>
+
+
+        <!-- Button to delete the selected category -->
+        <button onclick="deleteCategory()">Delete Category</button>
+
+        <!-- Input field for editing a category -->
+        <div>
+            <input type="text" id="editCategory" placeholder="Edit Category Name">
+            <button onclick="editCategory()">Edit Category</button>
+        </div>
+    </div>
+<script src="main.js"></script>
+</body>
+
+</html>
