@@ -20,60 +20,64 @@ let todos = [
         category: "Work",
         dueDate: "2023-11-12"
     }
-];
-
+]
 // Function to display the todos
 function displayTodos() {
-    const todoList = document.getElementById("todoList");
-    todoList.innerHTML = "";
+    fetch('/api/todos') // Make a GET request to the server to fetch todos
+        .then(response => response.json())
+        .then(data => {
+            todos = data; // Update your local todos with the data from the server
 
-    todos.forEach(todo => {
-        const li = document.createElement("li");
-        li.className = "todo-item"; // Add a class for styling
+            const todoList = document.getElementById("todoList");
+            todoList.innerHTML = "";
 
-        const statusCheckbox = document.createElement("input");
-        statusCheckbox.type = "checkbox";
-        statusCheckbox.checked = todo.status === "complete";
-        statusCheckbox.addEventListener("change", () => toggleStatus(todo.id));
+            todos.forEach(todo => {
+                const li = document.createElement("li");
+                li.className = "todo-item"; // Add a class for styling
 
-        const titleSpan = document.createElement("span");
-        titleSpan.textContent = todo.title;
+                const statusCheckbox = document.createElement("input");
+                statusCheckbox.type = "checkbox";
+                statusCheckbox.checked = todo.status === "complete";
+                statusCheckbox.addEventListener("change", () => toggleStatus(todo.id));
 
-        const categorySpan = document.createElement("span");
-        categorySpan.className = "todo-category";
-        categorySpan.textContent = `Category: ${todo.category}`;
+                const titleSpan = document.createElement("span");
+                titleSpan.textContent = todo.title;
 
-        const dueDateSpan = document.createElement("span");
-        dueDateSpan.className = "todo-due-date";
-        dueDateSpan.textContent = `Due Date: ${todo.dueDate}`;
+                const categorySpan = document.createElement("span");
+                categorySpan.className = "todo-category";
+                categorySpan.textContent = `Category: ${todo.category}`;
 
-        const editButton = document.createElement("button");
-        editButton.textContent = "Edit";
-        editButton.addEventListener("click", () => editTodo(todo.id));
+                const dueDateSpan = document.createElement("span");
+                dueDateSpan.className = "todo-due-date";
+                dueDateSpan.textContent = `Due Date: ${todo.dueDate}`;
 
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", () => deleteTodo(todo.id));
+                const editButton = document.createElement("button");
+                editButton.textContent = "Edit";
+                editButton.addEventListener("click", () => editTodo(todo.id));
 
-        li.appendChild(statusCheckbox);
-        li.appendChild(titleSpan);
-        li.appendChild(categorySpan);
-        li.appendChild(dueDateSpan);
-        li.appendChild(editButton);
-        li.appendChild(deleteButton);
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.addEventListener("click", () => deleteTodo(todo.id));
 
-        // Add a class to the li element if the task is completed
-        if (todo.status === "complete") {
-            li.classList.add("completed-task");
-        }
+                li.appendChild(statusCheckbox);
+                li.appendChild(titleSpan);
+                li.appendChild(categorySpan);
+                li.appendChild(dueDateSpan);
+                li.appendChild(editButton);
+                li.appendChild(deleteButton);
 
-        todoList.appendChild(li);
-    });
+                // Add a class to the li element if the task is completed
+                if (todo.status === "complete") {
+                    li.classList.add("completed-task");
+                }
 
-    updateTodosLeft();
+                todoList.appendChild(li);
+            });
+
+            updateTodosLeft();
+        })
+        .catch(error => console.error('Error fetching todos:', error));
 }
-
-
 
 // Function to add a new todo
 function addTodo() {
@@ -82,28 +86,26 @@ function addTodo() {
     const newCategoryInput = document.getElementById("newCategory").value;
 
     if (newTodoTitle.trim() && newCategoryInput.trim()) {
-        // Check if the category already exists in the dropdown
-        if (!categoryExists(newCategoryInput)) {
-            // Create a new option element for the category filter dropdown
-            const categoryFilter = document.getElementById("categoryFilter");
-            const newCategoryOption = document.createElement("option");
-            newCategoryOption.value = newCategoryInput;
-            newCategoryOption.textContent = newCategoryInput;
-            categoryFilter.appendChild(newCategoryOption);
-        }
-
         const newTodo = {
-            id: todos.length,
             title: newTodoTitle,
-            status: "incomplete",
             category: newCategoryInput,
-            dueDate: ""
         };
 
-        todos.push(newTodo);
-        newTodoInput.value = "";
-        document.getElementById("newCategory").value = ""; // Clear the category input field
-        displayTodos();
+        fetch('/api/todos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTodo),
+        })
+            .then(response => response.json())
+            .then(data => {
+                todos.push(data); // Add the newly created todo to your local todos array
+                newTodoInput.value = "";
+                document.getElementById("newCategory").value = ""; // Clear the category input field
+                displayTodos();
+            })
+            .catch(error => console.error('Error adding todo:', error));
     } else {
         alert("Please enter a valid task title and category.");
     }
@@ -124,24 +126,60 @@ function editTodo(id) {
     if (todo) {
         const newTitle = prompt("Edit todo:", todo.title);
         if (newTitle !== null) {
-            const existingDueDate = todo.dueDate
             todo.title = newTitle;
-            todo.dueDate = existingDueDate
-            displayTodos();
+            fetch(`/api/todos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(todo),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // The server may return the updated todo, so update your local todos accordingly
+                    const index = todos.findIndex(t => t.id === data.id);
+                    if (index !== -1) {
+                        todos[index] = data;
+                    }
+                    displayTodos();
+                })
+                .catch(error => console.error('Error editing todo:', error));
         }
     }
 }
 
 // Function to delete a todo
 function deleteTodo(id) {
-    todos = todos.filter(todo => todo.id !== id);
-    displayTodos();
+    fetch(`/api/todos/${id}`, {
+        method: 'DELETE',
+    })
+        .then(response => {
+            if (response.status === 200) {
+                // Successfully deleted on the server, remove it from your local todos
+                todos = todos.filter(todo => todo.id !== id);
+                displayTodos();
+            } else {
+                console.error('Error deleting todo:', response.statusText);
+            }
+        })
+        .catch(error => console.error('Error deleting todo:', error));
 }
 
 // Function to clear all completed todos
 function clearCompletedTodos() {
-    todos = todos.filter(todo => todo.status === "incomplete");
-    displayTodos();
+    fetch('/api/todos', {
+        method: 'DELETE',
+    })
+        .then(response => {
+            if (response.status === 200) {
+                // Successfully cleared on the server, remove completed todos from your local todos
+                todos = todos.filter(todo => todo.status === "incomplete");
+                displayTodos();
+            } else {
+                console.error('Error clearing completed todos:', response.statusText);
+            }
+        })
+        .catch(error => console.error('Error clearing completed todos:', error));
 }
 
 // Function to update the "number of todos left to complete" text

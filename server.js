@@ -1,16 +1,15 @@
 const express = require('express')
 const { restart } = require('nodemon')
 const app = express()
-const port = 3000
+const port = 5500
+
+
+const todos = []
 
 const bodyParser = require('body-parser')
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
-})
-
-app.get('/new', (req, res) => {
-    res.send('This is a new route!')
 })
 
 app.listen(port, () => {
@@ -19,59 +18,40 @@ app.listen(port, () => {
 
 app.use(express.json())
 
-let todos = [
-    {
-        id: 0,
-        title: "Do Homework",
-        completedStatus: false,
-        category: "DGM3760"
-    },
-    {
-        id: 1,
-        title: "Walk the dog",
-        completedStatus: false,
-        category: "Home"
-    },
-    {
-        id: 2,
-        title: "Push code",
-        completedStatus: true,
-        category: "Work"
-    }
-]
-
 //GET TODOS
 app.get('/api/todos', (req, res) => {
     res.send(todos)
 })
 
 //POST TODO
+// POST TODO
 app.post('/api/todos', (req, res) => {
-    todos.push({
-        id: todos.length + 1,
-        title: req.body.title,
-        completedStatus: false,
-        category: req.body.category
-    })
-})
+  todos.push({
+      id: todos.length, // Use the current length as the new id
+      title: req.body.title,
+      completedStatus: false,
+      category: req.body.category
+  });
+  res.status(201).json(todos[todos.length - 1]); // Respond with the created todo
+});
 
 //PUT TODO
+// PUT TODO
 app.put('/api/todos/:id', (req, res) => {
-    const id = parseInt(req.params.id)
+  const id = parseInt(req.params.id);
 
-    const updatedTodo = todos.find((todo) => todo.id === id)
-    if(!updatedTodo) {
-        res.status(404).send('Todo Not Found')
-    } else {
-        // Update the todo item with the data from the request body
-        updatedTodo.title = req.body.title || updatedTodo.title;
-        updatedTodo.completedStatus = req.body.completedStatus || updatedTodo.completedStatus;
-        updatedTodo.category = req.body.category || updatedTodo.category;
+  const updatedTodo = todos.find((todo) => todo.id === id);
+  if (!updatedTodo) {
+      res.status(404).send('Todo Not Found');
+  } else {
+      // Update the todo item with the data from the request body
+      updatedTodo.title = req.body.title || updatedTodo.title;
+      updatedTodo.completedStatus = req.body.completedStatus || updatedTodo.completedStatus;
+      updatedTodo.category = req.body.category || updatedTodo.category;
 
-        res.send(updatedTodo);
-        
-    }
-})
+      res.send(updatedTodo);
+  }
+});
 
 //DELETE TODO
 app.delete('/api/todos/:id', (req, res) => {
@@ -88,7 +68,7 @@ app.delete('/api/todos/:id', (req, res) => {
 })
 
 //GET TODOS FOR A CATEGORY
-app.get('/api/todos', (req, res) => {
+app.get('/api/todos/category', (req, res) => {
     const category = req.query.category;
   
     if (!category) {
@@ -140,7 +120,7 @@ app.post('/api/categories', (req, res) => {
   });
     
   //PUT CATEGORIES (update)
-  app.put('/api/categories/:id', (req, res) => {
+  app.put('/api/categories/id', (req, res) => {
     const id = parseInt(req.params.id);
     const updatedCategory = req.body.category;
   
@@ -167,7 +147,7 @@ app.post('/api/categories', (req, res) => {
   });
 
 // DELETE CATEGORY
-app.delete('/api/categories/:category', (req, res) => {
+app.delete('/api/categories/category', (req, res) => {
     const categoryToDelete = req.params.category;
   
     // Check if any todo is using the category
