@@ -1,7 +1,9 @@
 const express = require('express')
 const { restart } = require('nodemon')
 const app = express()
-const port = 5500
+const port = 3000
+
+app.use(express.static('client'))
 
 
 const todos = [

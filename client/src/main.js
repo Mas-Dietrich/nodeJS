@@ -1,4 +1,4 @@
-let todos = [
+/* let todos = [
     {
         id: 0,
         title: "Do Homework",
@@ -20,7 +20,7 @@ let todos = [
         category: "Work",
         dueDate: "2023-11-12"
     }
-]
+] */
 
 // Function to display the todos
 function displayTodos() {
