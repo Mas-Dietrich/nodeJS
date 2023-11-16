@@ -58,7 +58,6 @@ function displayTodos() {
         .catch(error => console.error('Error fetching todos:', error));
 }
 
-// Function to add a new todo
 function addTodo() {
     const newTodoInput = document.getElementById("newTodo");
     const newTodoTitle = newTodoInput.value;
@@ -68,7 +67,7 @@ function addTodo() {
         const newTodo = {
             title: newTodoTitle,
             category: newCategoryInput,
-            status: "incomplete"
+            status: "incomplete" // Use the correct property name
         };
 
         fetch('/api/todos', {
@@ -80,16 +79,18 @@ function addTodo() {
         })
             .then(response => response.json())
             .then(data => {
-                todos.push(data); // Add the newly created todo to your local todos array
+                todos.push(data);
                 newTodoInput.value = "";
-                document.getElementById("newCategory").value = ""; // Clear the category input field
+                document.getElementById("newCategory").value = "";
                 displayTodos();
+                updateTodosLeft(); // Add this line to update the todos left
             })
             .catch(error => console.error('Error adding todo:', error));
     } else {
         alert("Please enter a valid task title and category.");
     }
 }
+
 
 // Function to toggle the status of a todo (complete/incomplete)
 function toggleStatus(id) {
@@ -110,6 +111,7 @@ function toggleStatus(id) {
                     todos[index] = data;
                 }
                 displayTodos();
+                updateTodosLeft();
             })
             .catch(error => console.error('Error toggling todo status:', error));
     }
@@ -154,6 +156,7 @@ function deleteTodo(id) {
                 // Successfully deleted on the server, remove it from your local todos
                 todos = todos.filter(todo => todo.id !== id);
                 displayTodos();
+                updateTodosLeft()
             } else {
                 console.error('Error deleting todo:', response.statusText);
             }
@@ -163,7 +166,7 @@ function deleteTodo(id) {
 
 // Function to clear all completed todos
 function clearCompletedTodos() {
-    fetch('/api/todos/completed', {
+    fetch('/api/todos/status', {
         method: 'DELETE',
     })
         .then(response => {
@@ -171,6 +174,7 @@ function clearCompletedTodos() {
                 // Successfully cleared on the server, remove completed todos from your local todos
                 todos = todos.filter(todo => todo.status === "incomplete");
                 displayTodos();
+                updateTodosLeft();
             } else {
                 console.error('Error clearing completed todos:', response.statusText);
             }

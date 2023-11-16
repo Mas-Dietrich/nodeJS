@@ -48,32 +48,30 @@ app.get('/api/todos', (req, res) => {
 })
 
 //POST TODO
-// POST TODO
 app.post('/api/todos', (req, res) => {
   todos.push({
-      id: todos.length, // Use the current length as the new id
-      title: req.body.title,
-      completedStatus: false,
-      category: req.body.category
+    id: todos.length, // Use the current length as the new id
+    title: req.body.title,
+    status: "incomplete", // Change completedStatus to status
+    category: req.body.category
   });
   res.status(201).json(todos[todos.length - 1]); // Respond with the created todo
 });
 
 //PUT TODO
-// PUT TODO
 app.put('/api/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
   const updatedTodo = todos.find((todo) => todo.id === id);
   if (!updatedTodo) {
-      res.status(404).send('Todo Not Found');
+    res.status(404).send('Todo Not Found');
   } else {
-      // Update the todo item with the data from the request body
-      updatedTodo.title = req.body.title || updatedTodo.title;
-      updatedTodo.completedStatus = req.body.completedStatus || updatedTodo.completedStatus;
-      updatedTodo.category = req.body.category || updatedTodo.category;
+    // Update the todo item with the data from the request body
+    updatedTodo.title = req.body.title || updatedTodo.title;
+    updatedTodo.status = req.body.status || updatedTodo.status; // Change completedStatus to status
+    updatedTodo.category = req.body.category || updatedTodo.category;
 
-      res.send(updatedTodo);
+    res.send(updatedTodo);
   }
 });
 
@@ -185,3 +183,11 @@ app.delete('/api/categories/:category', (req, res) => {
       res.send('Category deleted successfully');
     }
   });
+
+// DELETE COMPLETED TODOS
+app.delete('/api/todos/status', (req, res) => {
+  console.log('Received DELETE request for completed todos:', req.url);
+  // Remove all completed todos from the array
+  todos = todos.filter(todo => todo.status !== "complete");
+  res.send('Completed todos cleared successfully');
+});
