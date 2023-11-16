@@ -61,7 +61,7 @@ app.post('/api/todos', (req, res) => {
 
 //PUT TODO
 // PUT TODO
-app.put('/api/todos/id', (req, res) => {
+app.put('/api/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
   const updatedTodo = todos.find((todo) => todo.id === id);
@@ -78,7 +78,7 @@ app.put('/api/todos/id', (req, res) => {
 });
 
 //DELETE TODO
-app.delete('/api/todos/id', (req, res) => {
+app.delete('/api/todos/:id', (req, res) => {
     const id = parseInt(req.params.id)
     const deletedTodoIndex = todos.findIndex((todo) => todo.id === id)
 
@@ -171,7 +171,7 @@ app.post('/api/categories', (req, res) => {
   });
 
 // DELETE CATEGORY
-app.delete('/api/categories/category', (req, res) => {
+app.delete('/api/categories/:category', (req, res) => {
     const categoryToDelete = req.params.category;
   
     // Check if any todo is using the category
@@ -185,4 +185,3 @@ app.delete('/api/categories/category', (req, res) => {
       res.send('Category deleted successfully');
     }
   });
-  

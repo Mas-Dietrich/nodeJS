@@ -1,33 +1,11 @@
-/* let todos = [
-    {
-        id: 0,
-        title: "Do Homework",
-        status: "incomplete",
-        category: "DGM3760",
-        dueDate: "2023-11-10"
-    },
-    {
-        id: 1,
-        title: "Walk the dog",
-        status: "incomplete",
-        category: "Home",
-        dueDate: "2023-11-08"
-    },
-    {
-        id: 2,
-        title: "Push code",
-        status: "complete",
-        category: "Work",
-        dueDate: "2023-11-12"
-    }
-] */
-
+let todos = []
 // Function to display the todos
 function displayTodos() {
     fetch('/api/todos') // Make a GET request to the server to fetch todos
         .then(response => response.json())
         .then(data => {
-            todos = data; // Update your local todos with the data from the server
+            todos = data;
+            populateCategoryFilter() // Update your local todos with the data from the server
 
             const todoList = document.getElementById("todoList");
             todoList.innerHTML = "";
@@ -90,6 +68,7 @@ function addTodo() {
         const newTodo = {
             title: newTodoTitle,
             category: newCategoryInput,
+            status: "incomplete"
         };
 
         fetch('/api/todos', {
@@ -117,9 +96,25 @@ function toggleStatus(id) {
     const todo = todos.find(todo => todo.id === id);
     if (todo) {
         todo.status = todo.status === "complete" ? "incomplete" : "complete";
-        displayTodos();
+        fetch(`/api/todos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(todo),
+        })
+            .then(response => response.json())
+            .then(data => {
+                const index = todos.findIndex(t => t.id === data.id);
+                if (index !== -1) {
+                    todos[index] = data;
+                }
+                displayTodos();
+            })
+            .catch(error => console.error('Error toggling todo status:', error));
     }
 }
+
 
 // Function to edit a todo
 function editTodo(id) {
@@ -168,7 +163,7 @@ function deleteTodo(id) {
 
 // Function to clear all completed todos
 function clearCompletedTodos() {
-    fetch('/api/todos', {
+    fetch('/api/todos/completed', {
         method: 'DELETE',
     })
         .then(response => {
@@ -302,19 +297,22 @@ function deleteCategory() {
         return;
     }
 
-    const incompletedTasksInCategory = todos.some(todo => todo.category === selectedCategory && todo.status === "incomplete");
-
-    if (incompletedTasksInCategory) {
-        const confirmation = confirm("There are incompleted tasks in this category. Are you sure you want to delete it?");
-        if (!confirmation) {
-            return;
-        }
-    }
-
-    categoryFilter.remove(categoryFilter.selectedIndex);
-    displayTodos();
-    clearCompletedTodos();
+    fetch(`/api/categories/${selectedCategory}`, {
+        method: 'DELETE',
+    })
+        .then(response => {
+            if (response.status === 200) {
+                // Successfully deleted on the server, remove it from the dropdown
+                categoryFilter.remove(categoryFilter.selectedIndex);
+                displayTodos();
+                clearCompletedTodos();
+            } else {
+                console.error('Error deleting category:', response.statusText);
+            }
+        })
+        .catch(error => console.error('Error deleting category:', error));
 }
+
 
 // Function to check if a category has incompleted tasks
 function hasincompletedTasksInCategory(category) {
