@@ -9,21 +9,21 @@ const todos = [
   {
     id: 0,
     title: "Do Homework",
-    status: "incomplete",
+    status: false,
     category: "DGM3760",
     dueDate: "2023-11-10",
   },
   {
     id: 1,
     title: "Walk the dog",
-    status: "incomplete",
+    status: false,
     category: "Home",
     dueDate: "2023-11-08",
   },
   {
     id: 2,
     title: "Push code",
-    status: "complete",
+    status: true,
     category: "Work",
     dueDate: "2023-11-12",
   },
@@ -46,33 +46,32 @@ app.get("/api/todos", (req, res) => {
   res.send(todos);
 });
 
-//POST TODO
+// POST TODO
 app.post("/api/todos", (req, res) => {
   todos.push({
-    id: todos.length, // Use the current length as the new id
+    id: todos.length,
     title: req.body.title,
-    status: "incomplete", // Change completedStatus to status
+    status: false, // Change to boolean
     category: req.body.category,
   });
-  res.status(201).json(todos[todos.length - 1]); // Respond with the created todo
+  res.status(201).json(todos[todos.length - 1]);
 });
 
-//PUT TODO
+// PUT TODO
 app.put("/api/todos/:id", (req, res) => {
   const id = parseInt(req.params.id);
-
   const updatedTodo = todos.find((todo) => todo.id === id);
   if (!updatedTodo) {
     res.status(404).send("Todo Not Found");
   } else {
-    // Update the todo item with the data from the request body
     updatedTodo.title = req.body.title || updatedTodo.title;
-    updatedTodo.status = req.body.status || updatedTodo.status; // Change completedStatus to status
+    updatedTodo.status = req.body.status !== undefined ? req.body.status : updatedTodo.status;
     updatedTodo.category = req.body.category || updatedTodo.category;
 
     res.send(updatedTodo);
   }
 });
+
 
 //DELETE TODO
 app.delete("/api/todos/:id", (req, res) => {
@@ -89,8 +88,8 @@ app.delete("/api/todos/:id", (req, res) => {
 });
 
 //GET TODOS FOR A CATEGORY
-app.get("/api/todos/category", (req, res) => {
-  const category = req.query.category;
+app.get("/api/todos/category/:category", (req, res) => {
+  const category = req.params.category;
 
   if (!category) {
     res.status(400).send("Category parameter is missing");
@@ -190,8 +189,8 @@ app.delete("/api/categories/:category", (req, res) => {
 });
 
 // DELETE COMPLETED TODOS
-app.delete("/api/todos/completed", (req, res) => {
-  // Remove all completed todos from the array
-  todos = todos.filter((todo) => todo.status !== "complete");
-  res.send("Completed todos cleared successfully");
-});
+app.delete("/api/todo/status", (req, res) => {
+  todos = todos.filter((todo) => !todo.status);
+
+  res.send(todos)
+})
