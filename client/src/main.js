@@ -1,346 +1,455 @@
-// Function to display the todos
-function displayTodos() {
-    fetch("/api/todos") // Make a GET request to the server to fetch todos
-      .then((response) => response.json())
-      .then((data) => {
-        populateCategoryFilter(); // Update your local todos with the data from the server
-  
-        const todoList = document.getElementById("todoList");
-        todoList.innerHTML = "";
-  
-        data.forEach((todo) => {
-          const li = document.createElement("li");
-          li.className = "todo-item"; // Add a class for styling
-  
-          const statusCheckbox = document.createElement("input");
-          statusCheckbox.type = "checkbox";
-          statusCheckbox.checked = todo.status;
-          statusCheckbox.addEventListener("change", () => toggleStatus(todo.id));
+//DISPLAYING TODOS
 
-        const titleSpan = document.createElement("span");
-        titleSpan.textContent = todo.title;
-
-        const categorySpan = document.createElement("span");
-        categorySpan.className = "todo-category";
-        categorySpan.textContent = `Category: ${todo.category}`;
-
-        const dueDateSpan = document.createElement("span");
-        dueDateSpan.className = "todo-due-date";
-        dueDateSpan.textContent = `Due Date: ${todo.dueDate}`;
-
-        const editButton = document.createElement("button");
-        editButton.textContent = "Edit";
-        editButton.addEventListener("click", () => editTodo(todo.id));
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", () => deleteTodo(todo.id));
-
-        li.appendChild(statusCheckbox);
-        li.appendChild(titleSpan);
-        li.appendChild(categorySpan);
-        li.appendChild(dueDateSpan);
-        li.appendChild(editButton);
-        li.appendChild(deleteButton);
-
-        // Add a class to the li element if the task is completed
-        if (todo.status === true) {
-          li.classList.add("completed-task");
-        }
-
-        todoList.appendChild(li);
-      });
-
-      updateTodosLeft();
+//User can view todos
+function fetchTodos() {
+  fetch("/todos")
+    .then((response) => response.json())
+    .then((data) => {
+      // Call a function to display the todos on the front end
+      displayTodos(data);
     })
     .catch((error) => console.error("Error fetching todos:", error));
 }
 
-function addTodo() {
-    const newTodoInput = document.getElementById("newTodo");
-    const newTodoTitle = newTodoInput.value;
-    const newCategoryInput = document.getElementById("newCategory").value;
-  
-    if (newTodoTitle.trim() && newCategoryInput.trim()) {
-      const newTodo = {
-        title: newTodoTitle,
-        category: newCategoryInput,
-        status: false,
-      };
-  
-      fetch("/api/todos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTodo),
-      })
-        .then((response) => response.json())
-        .then(() => {
-          newTodoInput.value = "";
-          document.getElementById("newCategory").value = "";
-          displayTodos();
-          updateTodosLeft();
-        })
-        .catch((error) => console.error("Error adding todo:", error));
-    } else {
-      alert("Please enter a valid task title and category.");
-    }
-  }
-
-// Function to toggle the status of a todo (complete/incomplete)
-function toggleStatus(id) {
-    const todo = todo.find((todo) => todo.id === id);
-    if (todo) {
-      todo.status = todo.status === "complete" ? "incomplete" : "complete";
-      fetch(`/api/todos/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(todo),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          const index = todo.findIndex((t) => t.id === data.id);
-          if (index !== -1) {
-            todo[index] = data;
-          }
-          displayTodos();
-          updateTodosLeft();
-        })
-        .catch((error) => console.error("Error toggling todo status:", error));
-    }
-  }
-    
-// Function to edit a todo
-function editTodo(id) {
-    const todo = todo.find((todo) => todo.id === id);
-    if (todo) {
-      const newTitle = prompt("Edit todo:", todo.title);
-      if (newTitle !== null) {
-        todo.title = newTitle;
-        fetch(`/api/todos/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(todo),
-        })
-          .then(() => displayTodos())
-          .catch((error) => console.error("Error editing todo:", error));
-      }
-    }
-  }
-
-// Function to delete a todo
-function deleteTodo(id) {
-    fetch(`/api/todos/${id}`, {
-      method: "DELETE",
-    })
-      .then(() => displayTodos())
-      .catch((error) => console.error("Error deleting todo:", error));
-  }
-
-/* function clearCompletedTodos() {
-    fetch("/api/todos/status", {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          // Successfully cleared on the server, remove completed todos from your local todos
-          todos = todos.filter((todo) => todo.status === false);
-          displayTodos();
-          updateTodosLeft();
-        } else {
-          console.error("Error clearing completed todos:", response.statusText);
-        }
-      })
-      .catch((error) => console.error("Error clearing completed todos:", error));
-  } */
-
-  let clearCompletedTodos = document.querySelector('#clearCompletedTodos')
-
-  clearCompletedTodos.addEventListener('click', () => {
-    fetch('api/todo/status', {
-        method: "DELETE",
-    })
-
-    .then((res) => res.json())
-    .then((data) => displayTodos())
-  })
-  
-  function updateTodosLeft() {
-    fetch("/api/todos") // Fetch todos from the server
-      .then((response) => response.json())
-      .then((todos) => {
-        const incompleteTodos = todos.filter((todo) => todo.status === false);
-        const todosLeftText = `${incompleteTodos.length} todos left to complete`;
-        document.getElementById("todosLeft").textContent = todosLeftText;
-      })
-      .catch((error) => console.error("Error fetching todos:", error));
-  }
-
-function populateCategoryFilter() {
-    const categoryFilter = document.getElementById("categoryFilter");
-  
-    fetch("/api/categories") // Fetch categories from the server
-      .then((response) => response.json())
-      .then((categories) => {
-        categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-  
-        categories.forEach((category) => {
-          const option = document.createElement("option");
-          option.value = category;
-          option.textContent = category;
-          categoryFilter.appendChild(option);
-        });
-      })
-      .catch((error) => console.error("Error fetching categories:", error));
-  }
-
-  function filterByCategory() {
-  const categoryFilter = document.getElementById("categoryFilter");
-  const selectedCategory = categoryFilter.value;
-
-  if (selectedCategory === "all") {
-    displayTodos();
-  } else {
-    fetch(`/api/todos/category/${selectedCategory}`) // Fetch todos for the selected category
-      .then((response) => response.json())
-      .then((filteredTodos) => displayFilteredTodos(filteredTodos))
-      .catch((error) => console.error("Error fetching todos by category:", error));
-  }
-}
-
-function displayFilteredTodos(filteredTodos) {
+// Update the displayTodos function
+function displayTodos(todos) {
   const todoList = document.getElementById("todoList");
+  const todosLeft = document.getElementById("todosLeft");
+
+  // Clear the existing list
   todoList.innerHTML = "";
 
-  filteredTodos.forEach((todo) => {
-    const li = document.createElement("li");
-    li.className = "todo-item";
+  let incompleteCount = 0; // Initialize the count of incomplete todos
 
-    const statusCheckbox = document.createElement("input");
-    statusCheckbox.type = "checkbox";
-    statusCheckbox.checked = todo.status === "complete";
-    statusCheckbox.addEventListener("change", () => toggleStatus(todo.id));
+  // Loop through the todos and append only incomplete ones to the list
+  todos.forEach((todo) => {
+    const listItem = document.createElement("li");
 
-    const titleSpan = document.createElement("span");
-    titleSpan.textContent = todo.title;
+    // Display todo details
+    const todoDetailsContainer = document.createElement("div");
+    const titleElement = document.createElement("h2");
+    titleElement.textContent = todo.title;
 
-    const categorySpan = document.createElement("span");
-    categorySpan.className = "todo-category";
-    categorySpan.textContent = `Category: ${todo.category}`;
+    const categoryElement = document.createElement("h3");
+    categoryElement.textContent = todo.category;
+    categoryElement.style.fontStyle = "italic";
+    categoryElement.style.fontSize = "smaller";
 
-    const dueDateSpan = document.createElement("span");
-    dueDateSpan.className = "todo-due-date";
-    dueDateSpan.textContent = `Due Date: ${todo.dueDate}`;
+    const dueDateElement = document.createElement("h4");
+    dueDateElement.textContent = todo.dueDate;
+    dueDateElement.style.fontStyle = "italic";
 
+    todoDetailsContainer.appendChild(titleElement);
+    todoDetailsContainer.appendChild(categoryElement);
+    todoDetailsContainer.appendChild(dueDateElement);
+
+    listItem.appendChild(todoDetailsContainer);
+
+    // Toggle todo progress button
+    const statusButton = document.createElement("button");
+    statusButton.textContent = todo.status ? "Done" : "In Progress";
+    statusButton.addEventListener("click", () => toggleTodoStatus(todo.id));
+
+    listItem.appendChild(statusButton);
+
+    // Add an edit button to each todo item
     const editButton = document.createElement("button");
     editButton.textContent = "Edit";
     editButton.addEventListener("click", () => editTodo(todo.id));
 
+    // Add a delete button to each todo item
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.addEventListener("click", () => deleteTodo(todo.id));
 
-    li.appendChild(statusCheckbox);
-    li.appendChild(titleSpan);
-    li.appendChild(categorySpan);
-    li.appendChild(dueDateSpan);
-    li.appendChild(editButton);
-    li.appendChild(deleteButton);
+    listItem.appendChild(editButton);
+    listItem.appendChild(deleteButton);
 
-    if (todo.status === "complete") {
-      li.classList.add("completed-task");
+    // Apply completed-task class if the todo is completed
+    if (todo.status) {
+      listItem.classList.add("completed-task");
     }
 
-    todoList.appendChild(li);
+    todoList.appendChild(listItem);
+
+    if (!todo.status) {
+      incompleteCount++; // Increment the count for each incomplete todo
+    }
   });
 
-  updateTodosLeft();
+  // Update the display of incomplete todos count
+  todosLeft.textContent =
+    incompleteCount === 1
+      ? "1 todo left to complete"
+      : `${incompleteCount} todos left to complete`;
 }
 
-// Function to check if a category already exists
-function categoryExists(categoryName) {
-  const categoryFilter = document.getElementById("categoryFilter");
-  return Array.from(categoryFilter.options).some(
-    (option) => option.value === categoryName
-  );
-}
-
-function deleteCategory() {
-    const categoryFilter = document.getElementById("categoryFilter");
-    const selectedCategory = categoryFilter.value;
-  
-    if (selectedCategory === "all") {
-      alert("Please select a category to delete.");
-      return;
-    }
-  
-    fetch(`/api/categories/${selectedCategory}`, {
-      method: "DELETE",
+// Add a function to toggle the todo status
+function toggleTodoStatus(todoId) {
+  fetch(`/api/todo/status/${todoId}`, {
+    method: "PUT",
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
     })
-      .then((response) => {
-        if (response.status === 200) {
-          // Successfully deleted on the server, remove it from the dropdown
-          populateCategoryFilter(); // Update the categories in the dropdown
-          displayTodos();
-          clearCompletedTodos();
-        } else {
-          console.error("Error deleting category:", response.statusText);
-        }
-      })
-      .catch((error) => console.error("Error deleting category:", error));
-  }
-
-// Function to check if a category has incompleted tasks
-function hasincompletedTasksInCategory(category) {
-  return todos.some(
-    (todo) => todo.category === category && todo.status === "incomplete"
-  );
+    .then((data) => {
+      console.log(data.message); // Log the success message
+      fetchTodos(); // Fetch and display updated todos
+    })
+    .catch((error) => console.error("Error toggling todo status:", error));
 }
 
-function editCategory() {
-  const categoryFilter = document.getElementById("categoryFilter");
-  const editCategoryInput = document.getElementById("editCategory");
-  const selectedCategory = categoryFilter.value;
-  const editedCategory = editCategoryInput.value.trim();
+function fetchTodosCount() {
+  fetch("/todos/count")
+    .then((response) => response.json())
+    .then((data) => {
+      // Call a function to update the todos count on the front end
+      updateTodosCount(data.count);
+    })
+    .catch((error) => console.error("Error fetching todos count:", error));
+}
 
-  if (selectedCategory === "all") {
-    alert("Please select a category to edit.");
+function updateTodosCount(count) {
+  const todosLeft = document.getElementById("todosLeft");
+  todosLeft.textContent =
+    count === 1 ? "1 todo left to complete" : `${count} todos left to complete`;
+}
+
+//CATEGORIES
+
+// Fetch and populate categories
+function fetchCategories() {
+  fetch("/categories")
+    .then((response) => response.json())
+    .then((data) => {
+      // Call a function to update the categories in the dropdown
+      updateCategories(data);
+    })
+    .catch((error) => console.error("Error fetching categories:", error));
+}
+
+// Function to update categories in the dropdown for filtering todos
+function updateCategoryFilter(categories) {
+  const categoryFilterDropdown = document.getElementById("categoryFilter");
+  categoryFilterDropdown.innerHTML = ""; // Clear existing options
+
+  // Add an option for filtering by all categories
+  const allCategoriesOption = document.createElement("option");
+  allCategoriesOption.value = "all";
+  allCategoriesOption.textContent = "All Categories";
+  categoryFilterDropdown.appendChild(allCategoriesOption);
+
+  // Add each category as an option
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryFilterDropdown.appendChild(option);
+  });
+}
+
+// Function to update categories in the dropdown for adding todos
+function updateCategories(categories) {
+  const categorySelector = document.getElementById("categorySelector");
+  categorySelector.innerHTML = ""; // Clear existing options
+
+  //USERS NEED TO BE ABLE TO ADD CATEGORIES
+  // Add an option for adding a new category
+  const addNewCategoryOption = document.createElement("option");
+  addNewCategoryOption.value = "new";
+  addNewCategoryOption.textContent = "Select a Category";
+  categorySelector.appendChild(addNewCategoryOption);
+
+  // Add each category as an option
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categorySelector.appendChild(option);
+  });
+}
+
+//USER NEEDS TO BE ABLE TO VIEW TODOS BY CATEGORY
+function filterByCategory() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+
+  // If "All Categories" is selected, fetch all todos
+  const url =
+    selectedCategory === "all"
+      ? "/todos"
+      : `/todos/category/${selectedCategory}`;
+
+  fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      // Call a function to display the filtered todos
+      displayTodos(data);
+    })
+    .catch((error) => console.error("Error fetching filtered todos:", error));
+}
+
+document.addEventListener("DOMContentLoaded", fetchCategoriesAndFilter);
+
+function fetchCategoriesAndFilter() {
+  // Fetch categories
+  fetch("/categories")
+    .then((response) => response.json())
+    .then((data) => {
+      // Update the categories in the dropdown for adding todos
+      updateCategories(data);
+
+      // Update the categories in the dropdown for filtering todos
+      updateCategoryFilter(data);
+
+      // Attach the filterByCategory function to be called when categories are fetched
+      document
+        .getElementById("categoryFilter")
+        .addEventListener("change", filterByCategory);
+    })
+    .catch((error) => console.error("Error fetching categories:", error));
+}
+
+//USER NEEDS TO BE ABLE TO DELETE CATEGORIES
+// Function to delete a category
+function deleteCategory() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+
+  if (!selectedCategory || selectedCategory === "all") {
+    alert("Please select a valid category to delete.");
     return;
   }
 
-  if (editedCategory) {
-    // Check if the edited category already exists
-    if (!categoryExists(editedCategory)) {
-      // Update the category name in the filter dropdown
-      categoryFilter.options[categoryFilter.selectedIndex].text =
-        editedCategory;
-      editCategoryInput.value = ""; // Clear the input field
+  // Confirm deletion with the user
+  const confirmDelete = confirm(
+    `Are you sure you want to delete the category "${selectedCategory}"?`
+  );
 
-      // Update the category name for all relevant todos
-      todos.forEach((todo) => {
-        if (todo.category === selectedCategory) {
-          todo.category = editedCategory;
-        }
-      });
+  if (confirmDelete) {
+    // Fetch todos in the selected category
+    fetch(`/todos/category/${selectedCategory}`)
+      .then((response) => response.json())
+      .then((todosToDelete) => {
+        // Delete each todo in the selected category
+        const deletePromises = todosToDelete.map((todo) => {
+          return fetch(`/todos/${todo.id}`, {
+            method: "DELETE",
+          })
+            .then((res) => res.json())
+            .then(() => {
+              console.log(`Todo with id ${todo.id} deleted successfully.`);
+            })
+            .catch((error) =>
+              console.error(`Error deleting todo with id ${todo.id}:`, error)
+            );
+        });
 
-      // Filter the todos based on the edited category and display them
-      const filteredTodos = todos.filter(
-        (todo) => todo.category === editedCategory
+        // After deleting all the todos, trigger the fetching of all todos
+        Promise.all(deletePromises).then(() => {
+          fetchTodos(); // Fetch and display updated todos
+        });
+
+        // After deleting the todos, fetch and update the categories for the filter dropdown
+        fetchCategoriesAndFilter();
+      })
+      .catch((error) =>
+        console.error("Error fetching todos in the selected category:", error)
       );
-      displayFilteredTodos(filteredTodos);
-    } else {
-      alert("Category already exists.");
-    }
-  } else {
-    alert("Please enter a valid category name.");
   }
 }
 
-displayTodos();
+document
+  .getElementById("deleteCategoryButton")
+  .addEventListener("click", deleteCategory);
 
-populateCategoryFilter();
+//USER NEEDS TO BE ABLE TO EDIT CATEGORIES
+// Function to edit a category name
+function editCategory() {
+  const oldCategoryName = document.getElementById("categoryFilter").value;
+  const newCategoryName = document.getElementById("editCategory").value.trim();
+
+  if (!oldCategoryName || oldCategoryName === "all") {
+    alert("Please select a valid category to edit.");
+    return;
+  }
+
+  if (!newCategoryName || newCategoryName === "") {
+    alert("Please provide a valid new category name.");
+    return;
+  }
+
+  const existingCategories = Array.from(
+    document.getElementById("categoryFilter").options
+  ).map((option) => option.value);
+  if (existingCategories.includes(newCategoryName)) {
+    alert("Category name already exists. Please choose a different name.");
+    return;
+  }
+
+  // Confirm editing with the user
+  const confirmEdit = confirm(
+    `Are you sure you want to edit the category name from "${oldCategoryName}" to "${newCategoryName}"?`
+  );
+
+  if (confirmEdit) {
+    fetch(`/categories/${oldCategoryName}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newCategoryName }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // After editing the category name, fetch and update the categories for the filter dropdown
+        fetchCategoriesAndFilter();
+      })
+      .catch((error) => console.error("Error editing category:", error));
+  }
+}
+
+document
+  .getElementById("editCategoryButton")
+  .addEventListener("click", editCategory);
+
+//TODOS
+
+// Function to add a new todo
+function addTodo() {
+  const newTodoInput = document.getElementById("newTodo");
+  const categorySelector = document.getElementById("categorySelector");
+  const newCategoryInput = document.getElementById("newCategory");
+
+  const selectedCategory = categorySelector.value;
+  let categoryToAdd;
+
+  // Check if the user selected an existing category or chose to add a new one
+  if (selectedCategory === "new") {
+    // Use the new category input if the user chose to add a new category
+    categoryToAdd = newCategoryInput.value.trim();
+  } else {
+    // Use the selected category from the dropdown
+    categoryToAdd = selectedCategory;
+  }
+
+  // Check if either the todo title or category is empty
+  if (!newTodoInput.value.trim() || !categoryToAdd) {
+    alert("Please enter both a todo title and select or add a category.");
+    return; // Stop execution if validation fails
+  }
+
+  const newTodo = {
+    title: newTodoInput.value,
+    category: categoryToAdd,
+    status: false,
+  };
+
+  // Make a POST request to add the new todo
+  fetch("/todos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newTodo),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // After adding the todo, fetch and display updated todos
+      fetchTodos();
+      // Fetch and update the categories for the filter dropdown
+      fetchCategories();
+    })
+    .catch((error) => console.error("Error adding todo:", error));
+
+  // Clear input fields after adding todo
+  newTodoInput.value = "";
+  categorySelector.value = "";
+  newCategoryInput.value = "";
+}
+
+// Attach the addTodo function to the "Add" button click event
+const addButton = document.querySelector("#addTodo");
+addButton.addEventListener("click", addTodo);
+
+//User can edit todos
+function editTodo(todoId) {
+  const updatedTitle = prompt("Enter the updated title:");
+
+  // Check if the entered title is not null, not an empty string, and not just whitespace
+  if (updatedTitle !== null && updatedTitle.trim() !== "") {
+    fetch(`/todos/${todoId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title: updatedTitle }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // After editing the todo, fetch and display updated todos
+        fetchTodos();
+      })
+      .catch((error) => console.error("Error editing todo:", error));
+  } else {
+    // Handle the case where the user entered an empty or blank title
+    alert("Invalid title. Please enter a todo title.");
+  }
+}
+
+//User can delete todos
+function deleteTodo(todoId) {
+  const confirmDelete = confirm("Are you sure you want to delete this todo?");
+
+  if (confirmDelete) {
+    fetch(`/todos/${todoId}`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // After deleting the todo, fetch and display updated todos
+        fetchTodos();
+      })
+      .catch((error) => console.error("Error deleting todo:", error));
+  }
+}
+
+// User can delete (aka clear) all done todos at once.
+const clearCompletedButton = document.getElementById("clearCompletedTodos");
+
+clearCompletedButton.addEventListener("click", () => {
+  // Fetch completed todos
+  fetch("/todos/status/completed")
+    .then((response) => response.json())
+    .then((completedTodos) => {
+      // Delete each completed todo
+      const deletePromises = completedTodos.map((todo) => {
+        return fetch(`/todos/${todo.id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then(() => {
+            console.log(
+              `Completed todo with id ${todo.id} cleared successfully.`
+            );
+          })
+          .catch((error) =>
+            console.error(
+              `Error clearing completed todo with id ${todo.id}:`,
+              error
+            )
+          );
+      });
+
+      // After clearing all completed todos, fetch and display updated todos
+      Promise.all(deletePromises).then(() => {
+        fetchTodos();
+      });
+    })
+    .catch((error) => console.error("Error fetching completed todos:", error));
+});
+
+// Initial fetch when the page loads
+fetchTodos();
+fetchTodosCount();

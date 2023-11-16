@@ -4,6 +4,7 @@ const app = express();
 const port = 3000;
 
 app.use(express.static("client"));
+app.use(express.json());
 
 const todos = [
   {
@@ -39,158 +40,159 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-app.use(express.json());
-
-//GET TODOS
-app.get("/api/todos", (req, res) => {
-  res.send(todos);
+//GETS ALL TODOS
+app.get("/todos", (req, res) => {
+  res.json(todos);
 });
 
-// POST TODO
-app.post("/api/todos", (req, res) => {
-  todos.push({
-    id: todos.length,
-    title: req.body.title,
-    status: false, // Change to boolean
-    category: req.body.category,
-  });
-  res.status(201).json(todos[todos.length - 1]);
+//POSTS TODOS
+app.post("/todos", (req, res) => {
+  const newTodo = req.body;
+
+  newTodo.id = todos.length;
+
+  todos.push(newTodo);
+
+  res.json(todos);
 });
 
-// PUT TODO
-app.put("/api/todos/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const updatedTodo = todos.find((todo) => todo.id === id);
-  if (!updatedTodo) {
-    res.status(404).send("Todo Not Found");
+//UPDATES TODOS
+app.put("/todos/:id", (req, res) => {
+  const todoId = parseInt(req.params.id);
+  const updatedTodo = req.body;
+
+  // Find the todo with the specified id and update its title
+  const todoToUpdate = todos.find((todo) => todo.id === todoId);
+  if (todoToUpdate) {
+    todoToUpdate.title = updatedTodo.title;
+    res.json(todos);
   } else {
-    updatedTodo.title = req.body.title || updatedTodo.title;
-    updatedTodo.status = req.body.status !== undefined ? req.body.status : updatedTodo.status;
-    updatedTodo.category = req.body.category || updatedTodo.category;
-
-    res.send(updatedTodo);
+    res.status(404).json({ error: "Todo not found" });
   }
 });
 
+//DELETES TODOS
+app.delete("/todos/:id", (req, res) => {
+  const todoId = parseInt(req.params.id);
 
-//DELETE TODO
-app.delete("/api/todos/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const deletedTodoIndex = todos.findIndex((todo) => todo.id === id);
-
-  if (deletedTodoIndex === -1) {
-    res.status(404).send("Todo not found");
+  // Remove the todo with the specified id
+  const indexToRemove = todos.findIndex((todo) => todo.id === todoId);
+  if (indexToRemove !== -1) {
+    todos.splice(indexToRemove, 1);
+    res.json(todos);
   } else {
-    // Remove the specified todo item from the array
-    todos.splice(deletedTodoIndex, 1);
-    res.send("Todo deleted successfully");
+    res.status(404).json({ error: "Todo not found" });
   }
 });
 
-//GET TODOS FOR A CATEGORY
-app.get("/api/todos/category/:category", (req, res) => {
-  const category = req.params.category;
+//UPDATES THE COUNT OF TODOS LEFT
+app.get("/todos/count", (req, res) => {
+  const incompleteTodos = todos.filter((todo) => !todo.status);
+  res.json({ count: incompleteTodos.length });
+});
 
-  if (!category) {
-    res.status(400).send("Category parameter is missing");
+//CLEARS COMPLETED TODOS
+app.delete("/api/todo/status", (req, res) => {
+  // Filter out completed todos
+  todos = todos.filter((todo) => !todo.status);
+
+  // Send a simple success message as a response
+  res.status(200).json({ message: "Completed todos cleared successfully" });
+});
+
+//GETS CATEGORIES
+//Gets Categories
+// Endpoint to fetch unique categories
+app.get("/categories", (req, res) => {
+  const uniqueCategories = [...new Set(todos.map((todo) => todo.category))];
+  res.json(uniqueCategories);
+});
+
+//GETS TODO BY CATEGORY
+// Endpoint to fetch todos by category
+app.get("/todos/category/:category", (req, res) => {
+  const categoryToFilter = req.params.category;
+  const filteredTodos = todos.filter(
+    (todo) => todo.category === categoryToFilter
+  );
+  res.json(filteredTodos);
+});
+
+//DELETES CATEGORY
+//Endpoint to delete a category if there are no incomplete todos
+app.delete("/categories/:category", (req, res) => {
+  const categoryToDelete = req.params.category;
+
+  // Check if there are incomplete todos in the specified category
+  const hasIncompleteTodos = todos.some(
+    (todo) => todo.category === categoryToDelete && !todo.status
+  );
+
+  if (hasIncompleteTodos) {
+    res.status(400).json({
+      error:
+        "Cannot delete category with incomplete todos. Complete or delete the todos first.",
+    });
+  } else {
+    // Remove the category from the todos
+    todos.forEach((todo) => {
+      if (todo.category === categoryToDelete) {
+        delete todo.category;
+      }
+    });
+
+    // Send a success message as a response
+    res.status(200).json({ message: "Category deleted successfully." });
+  }
+});
+
+//UPDATES CATEGORY NAME:
+
+// Endpoint to edit a category name
+app.put("/categories/:category", (req, res) => {
+  const oldCategoryName = req.params.category;
+  const newCategoryName = req.body.newCategoryName;
+
+  // Check if the new category name is provided
+  if (!newCategoryName || newCategoryName.trim() === "") {
+    res
+      .status(400)
+      .json({ error: "Please provide a valid new category name." });
     return;
   }
 
-  const todosByCategory = todos.filter((todo) => todo.category === category);
-
-  if (todosByCategory.length === 0) {
-    res.status(404).send("No todos found for this category");
-  } else {
-    res.send(todosByCategory);
-  }
-});
-
-//GET CATEGORIES
-
-app.get("/api/categories", (req, res) => {
-  const categories = todos.map((todo) => todo.category);
-  const uniqueCategories = [...new Set(categories)]; // Use Set to get unique values
-
-  res.send(uniqueCategories);
-});
-
-//POST CATEGORIES
-app.post("/api/categories", (req, res) => {
-  const newCategory = req.body.category;
-
-  if (!newCategory) {
-    res.status(400).send("Category is missing in the request body");
-  } else {
-    // Check if the category already exists
-    const categoryExists = todos.some((todo) => todo.category === newCategory);
-
-    if (categoryExists) {
-      res.status(409).send("Category already exists");
-    } else {
-      // Create a new category
-      todos.push({
-        id: todos.length,
-        title: "",
-        completedStatus: false,
-        category: newCategory,
-      });
-      res.status(201).send("Category created successfully");
-    }
-  }
-});
-
-//PUT CATEGORIES (update)
-app.put("/api/categories/id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const updatedCategory = req.body.category;
-
-  if (!updatedCategory) {
-    res.status(400).send("Category is missing in the request body");
-  } else {
-    const todoToUpdate = todos.find((todo) => todo.id === id);
-
-    if (!todoToUpdate) {
-      res.status(404).send("Todo not found");
-    } else {
-      // Check if the updated category already exists
-      const categoryExists = todos.some(
-        (todo) => todo.category === updatedCategory
-      );
-
-      if (categoryExists) {
-        res.status(409).send("Category already exists");
-      } else {
-        // Update the category of the specified todo
-        todoToUpdate.category = updatedCategory;
-        res.send("Category updated successfully");
-      }
-    }
-  }
-});
-
-// DELETE CATEGORY
-app.delete("/api/categories/:category", (req, res) => {
-  const categoryToDelete = req.params.category;
-
-  // Check if any todo is using the category
-  const todosUsingCategory = todos.filter(
-    (todo) => todo.category === categoryToDelete
+  // Check if the category exists
+  const categoryExists = todos.some(
+    (todo) => todo.category === oldCategoryName
   );
 
-  if (todosUsingCategory.length > 0) {
-    res
-      .status(409)
-      .send("Cannot delete category as it is in use by one or more todos");
-  } else {
-    // Remove the category from the todos
-    todos = todos.filter((todo) => todo.category !== categoryToDelete);
-    res.send("Category deleted successfully");
+  if (!categoryExists) {
+    res.status(404).json({ error: "Category not found." });
+    return;
   }
+
+  // Update the category name for all todos with the old category name
+  todos.forEach((todo) => {
+    if (todo.category === oldCategoryName) {
+      todo.category = newCategoryName;
+    }
+  });
+
+  res.status(200).json({ message: "Category name updated successfully." });
 });
 
-// DELETE COMPLETED TODOS
-app.delete("/api/todo/status", (req, res) => {
-  todos = todos.filter((todo) => !todo.status);
+//UPDATES COMPLETION STATUS OF TODO:
 
-  res.send(todos)
-})
+// Update the server route for toggling todo status
+app.put("/api/todo/status/:id", (req, res) => {
+  const todoId = parseInt(req.params.id);
+
+  // Find the todo with the specified id and toggle its status
+  const todoToUpdate = todos.find((todo) => todo.id === todoId);
+  if (todoToUpdate) {
+    todoToUpdate.status = !todoToUpdate.status;
+    res.status(200).json({ message: "Todo status toggled successfully" });
+  } else {
+    res.status(404).json({ error: "Todo not found" });
+  }
+});
