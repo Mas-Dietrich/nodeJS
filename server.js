@@ -191,8 +191,7 @@ app.delete("/api/categories/:category", (req, res) => {
 
 // DELETE COMPLETED TODOS
 app.delete("/api/todos/completed", (req, res) => {
-  console.log("Received DELETE request for completed todos:", req.url);
   // Remove all completed todos from the array
-  todos = todos.filter((todo) => todo.status === "incomplete");
+  todos = todos.filter((todo) => todo.status !== "complete");
   res.send("Completed todos cleared successfully");
 });

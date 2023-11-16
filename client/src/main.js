@@ -162,24 +162,23 @@ function deleteTodo(id) {
     .catch((error) => console.error("Error deleting todo:", error));
 }
 
-// Function to clear all completed todos
 function clearCompletedTodos() {
-  fetch("/api/todos/completed", {
-    method: "DELETE",
-  })
-    .then((response) => {
-      if (response.status === 200) {
-        // Successfully cleared on the server, remove completed todos from your local todos
-        todos = todos.filter((todo) => todo.status === "incomplete");
-        displayTodos();
-        updateTodosLeft();
-      } else {
-        console.error("Error clearing completed todos:", response.statusText);
-      }
+    fetch("/api/todos/completed", {
+      method: "DELETE",
     })
-    .catch((error) => console.error("Error clearing completed todos:", error));
-}
-
+      .then((response) => {
+        if (response.status === 200) {
+          // Successfully cleared on the server, remove completed todos from your local todos
+          todos = todos.filter((todo) => todo.status !== "complete");
+          displayTodos();
+          updateTodosLeft();
+        } else {
+          console.error("Error clearing completed todos:", response.statusText);
+        }
+      })
+      .catch((error) => console.error("Error clearing completed todos:", error));
+  }
+  
 function updateTodosLeft() {
   const incompleteTodos = todos.filter((todo) => todo.status === "incomplete");
   const todosLeftText = `${incompleteTodos.length} todos left to complete`;
