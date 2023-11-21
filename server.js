@@ -41,12 +41,12 @@ app.listen(port, () => {
 });
 
 //GETS ALL TODOS
-app.get("/todos", (req, res) => {
+app.get("/api/todos", (req, res) => {
   res.json(todos);
 });
 
 //POSTS TODOS
-app.post("/todos", (req, res) => {
+app.post("/api/todos", (req, res) => {
   const newTodo = req.body;
 
   newTodo.id = todos.length;
@@ -57,7 +57,7 @@ app.post("/todos", (req, res) => {
 });
 
 //UPDATES TODOS
-app.put("/todos/:id", (req, res) => {
+app.put("/api/todos/:id", (req, res) => {
   const todoId = parseInt(req.params.id);
   const updatedTodo = req.body;
 
@@ -72,7 +72,7 @@ app.put("/todos/:id", (req, res) => {
 });
 
 //DELETES TODOS
-app.delete("/todos/:id", (req, res) => {
+app.delete("/api/todos/:id", (req, res) => {
   const todoId = parseInt(req.params.id);
 
   // Remove the todo with the specified id
@@ -86,31 +86,30 @@ app.delete("/todos/:id", (req, res) => {
 });
 
 //UPDATES THE COUNT OF TODOS LEFT
-app.get("/todos/count", (req, res) => {
+app.get("/api/todos/count", (req, res) => {
   const incompleteTodos = todos.filter((todo) => !todo.status);
   res.json({ count: incompleteTodos.length });
 });
 
-//CLEARS COMPLETED TODOS
-app.delete("/api/todo/status", (req, res) => {
-  // Filter out completed todos
-  todos = todos.filter((todo) => !todo.status);
 
-  // Send a simple success message as a response
+app.delete("/api/todos/status", (req, res) => {
+  // Filter out completed todos
+  const incompleteTodos = todos.filter((todo) => !todo.status);
+  todos = [...incompleteTodos];
+
   res.status(200).json({ message: "Completed todos cleared successfully" });
 });
 
 //GETS CATEGORIES
-//Gets Categories
 // Endpoint to fetch unique categories
-app.get("/categories", (req, res) => {
+app.get("/api/categories", (req, res) => {
   const uniqueCategories = [...new Set(todos.map((todo) => todo.category))];
   res.json(uniqueCategories);
 });
 
 //GETS TODO BY CATEGORY
 // Endpoint to fetch todos by category
-app.get("/todos/category/:category", (req, res) => {
+app.get("/api/todos/category/:category", (req, res) => {
   const categoryToFilter = req.params.category;
   const filteredTodos = todos.filter(
     (todo) => todo.category === categoryToFilter
@@ -120,7 +119,7 @@ app.get("/todos/category/:category", (req, res) => {
 
 //DELETES CATEGORY
 //Endpoint to delete a category if there are no incomplete todos
-app.delete("/categories/:category", (req, res) => {
+app.delete("/api/categories/:category", (req, res) => {
   const categoryToDelete = req.params.category;
 
   // Check if there are incomplete todos in the specified category
@@ -149,7 +148,7 @@ app.delete("/categories/:category", (req, res) => {
 //UPDATES CATEGORY NAME:
 
 // Endpoint to edit a category name
-app.put("/categories/:category", (req, res) => {
+app.put("/api/categories/:category", (req, res) => {
   const oldCategoryName = req.params.category;
   const newCategoryName = req.body.newCategoryName;
 

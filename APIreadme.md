@@ -5,36 +5,36 @@
 
 ### 1. GET TODOS
 
-- **Endpoint**: `/todos/`
+- **Endpoint**: `/api/todos`
 
 ### 2. POST TODOS
 
-- **Endpoint**: `/todos`
+- **Endpoint**: `/api/todos`
 
 ### 3. PUT TODO (Update)
 
-- **Endpoint**: `/todos/:id`
+- **Endpoint**: `/api/todos/:id`
 
 ### 4. DELETE TODO
 
-- **Endpoint**: `/todos/:id`
+- **Endpoint**: `/api/todos/:id`
 
 ### GET ALL TODOS for a CATEGORY
 
-- **Endpoint**: `/todo/category/:category`
+- **Endpoint**: `/api/todo/category/:category`
 
 ### GET CATEGORIES
 
-- **Endpoint**: `/categories`
+- **Endpoint**: `/api/categories`
 
 
 ### POST CATEGORIES
-- **Endpoint**: `/categories`
+- **Endpoint**: `/api/categories`
 
 ### PUT CATEGORIES (Update)
 
-- **Endpoint**: `/categories/:category`
+- **Endpoint**: `/api/categories/:category`
 
 ### DELETE CATEGORIES
 
-- **Endpoint**: `/categories/:category`
+- **Endpoint**: `/api/categories/:category`
