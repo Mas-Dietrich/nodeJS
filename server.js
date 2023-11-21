@@ -91,7 +91,6 @@ app.get("/api/todos/count", (req, res) => {
   res.json({ count: incompleteTodos.length });
 });
 
-
 app.delete("/api/todos/status", (req, res) => {
   // Filter out completed todos
   const incompleteTodos = todos.filter((todo) => !todo.status);
